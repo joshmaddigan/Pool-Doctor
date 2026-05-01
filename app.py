@@ -73,17 +73,21 @@ def process_pool_data(fcl_val, alk_val, ph_val, th_val=250.0, volume_l=20000):
         # Weather Adjustment for Chlorine Demand
         if temp >= 28.0 or uv >= 6.0:
             target_fcl = 4.0
-    except:
+    except Exception as e:
         weather_trend = "Weather unavailable"
+        print(f"Weather API error: {e}")
 
     # Save to Database
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS scans (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, fcl REAL, alk REAL, ph REAL, th REAL, weather_trend TEXT)")
-    c.execute("INSERT INTO scans (timestamp, fcl, alk, ph, th, weather_trend) VALUES (?, ?, ?, ?, ?, ?)", 
-              (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fcl_val, alk_val, ph_val, th_val, weather_trend))
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS scans (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, fcl REAL, alk REAL, ph REAL, th REAL, weather_trend TEXT)")
+        c.execute("INSERT INTO scans (timestamp, fcl, alk, ph, th, weather_trend) VALUES (?, ?, ?, ?, ?, ?)", 
+                  (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fcl_val, alk_val, ph_val, th_val, weather_trend))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Database error: {e}")
 
     # The Math Engine (Dynamic Volume)
     plan = []
@@ -114,18 +118,22 @@ def home(): return render_template('index.html')
 
 @app.route('/history')
 def view_history():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT * FROM scans ORDER BY timestamp DESC LIMIT 10")
-    scans = c.fetchall()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT * FROM scans ORDER BY timestamp DESC LIMIT 10")
+        scans = c.fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"History fetch error: {e}")
+        scans = []
     
     # Reverse so oldest is first for the chart
     chart_scans = list(reversed(scans))
     
-    labels = [scan[1].split()[0][-5:] for scan in chart_scans] # Just MM-DD
-    fcl_data = [scan[2] for scan in chart_scans]
-    ph_data = [scan[4] for scan in chart_scans]
+    labels = [scan[1].split()[0][-5:] for scan in chart_scans] if chart_scans else []
+    fcl_data = [scan[2] for scan in chart_scans] if chart_scans else []
+    ph_data = [scan[4] for scan in chart_scans] if chart_scans else []
     
     return render_template('history.html', scans=scans, labels=labels, fcl_data=fcl_data, ph_data=ph_data)
 
@@ -133,6 +141,9 @@ def view_history():
 @app.route('/scan', methods=['POST'])
 def scan_manual():
     data = request.json
+    if not data:
+        return jsonify({"error": "No JSON data provided"}), 400
+        
     volume = float(data.get("volume", 20000))
     plan = process_pool_data(
         float(data.get("fcl", 1.0)), 
