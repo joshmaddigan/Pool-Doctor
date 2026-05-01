@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Pro AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-cyan-50 min-h-screen flex justify-center py-4 px-2">
+
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative">
+        
+        <!-- HEADER -->
+        <div class="bg-cyan-600 text-white p-4 rounded-b-3xl shadow-md flex justify-between items-center">
+            <h1 class="text-xl font-black tracking-tight">Pool Pro AI 🌊</h1>
+            <button id="btn-settings" class="text-white hover:text-cyan-200 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="p-4 bg-slate-100 flex justify-center space-x-6 border-b border-slate-200">
+            
+            <div class="flex flex-col items-center flex-none w-48">
+                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Physical Strip</p>
+                <div class="w-full h-80 bg-slate-200 rounded-lg overflow-hidden border-2 border-slate-300 shadow-inner flex items-center justify-center bg-black relative">
+                    <img id="strip-preview" class="h-full w-full hidden" alt="Test Strip Preview" style="object-fit: contain;">
+                    <div id="preview-placeholder-bg" class="absolute bottom-0 w-full bg-black/60 py-2 flex justify-center">
+                        <span id="preview-placeholder" class="text-[10px] text-white font-bold text-center px-2">Upload to start</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Digital Match</p>
+                <div class="w-16 h-80 bg-white rounded-full border-2 border-slate-200 flex flex-col justify-between items-center py-6 shadow-md">
+                    <div id="pad-fcl" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors"></div>
+                    <div id="pad-alk" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors"></div>
+                    <div id="pad-ph" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors"></div>
+                    <div id="pad-th" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors bg-cyan-800"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <div class="flex flex-col">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Chlorine</label>
+                    <span id="val-fcl" class="text-sm font-black text-cyan-600">0.0</span>
+                </div>
+                <input type="range" id="slide-fcl" min="0" max="10" step="0.5" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+            </div>
+
+            <div class="flex flex-col">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Alkalinity</label>
+                    <span id="val-alk" class="text-sm font-black text-cyan-600">80</span>
+                </div>
+                <input type="range" id="slide-alk" min="0" max="240" step="10" value="80" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+            </div>
+
+            <div class="flex flex-col">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">pH Level</label>
+                    <span id="val-ph" class="text-sm font-black text-cyan-600">7.4</span>
+                </div>
+                <input type="range" id="slide-ph" min="6.2" max="9.0" step="0.2" value="7.4" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-500">
+            </div>
+
+            <div class="flex flex-col">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Hardness</label>
+                    <span id="val-th" class="text-sm font-black text-cyan-600">250</span>
+                </div>
+                <input type="range" id="slide-th" min="0" max="1000" step="50" value="250" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+            </div>
+
+            <div id="camera-section" class="pt-4 flex flex-col space-y-3">
+                <button id="camera-btn" class="bg-purple-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-transform">
+                    <span>📸 Take Photo / Scan Strip</span>
+                </button>
+                <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+            </div>
+
+            <div class="pt-2 flex flex-col space-y-3">
+                <button id="scan-manual-btn" class="bg-cyan-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-transform">
+                    <span>🧪 Calculate (Manual Entry)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SETTINGS MODAL -->
+        <div id="settings-modal" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-black text-slate-800">App Settings</h2>
+                    <button id="close-settings" class="text-slate-400 hover:text-slate-600">✕</button>
+                </div>
+
+                <!-- Strip Brand -->
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Test Strip Brand</label>
+                    <select id="brand-select" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-3 font-bold text-slate-700">
+                        <option value="aquarius_4way">Aquarius 4-Way</option>
+                        <option value="clorox_6way">Clorox Pool&Spa 6-Way</option>
+                        <option value="aquachek_7way">AquaChek 7-Way</option>
+                        <option value="hth_6way">HTH 6-Way</option>
+                        <option value="custom">Custom (Manual Only)</option>
+                    </select>
+                </div>
+
+                <!-- Pool Calculator -->
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="block text-xs font-bold text-cyan-600 uppercase mb-3">Pool Volume Calculator</label>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Diameter (ft)</label>
+                            <input type="number" id="calc-diameter" class="w-full bg-white border border-slate-300 rounded p-2 text-sm" placeholder="e.g. 18">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Depth (ft)</label>
+                            <input type="number" id="calc-depth" class="w-full bg-white border border-slate-300 rounded p-2 text-sm" placeholder="e.g. 4">
+                        </div>
+                    </div>
+                    <button id="btn-calc-vol" class="w-full bg-slate-800 text-white text-xs font-bold py-2 rounded-lg mb-3">Calculate Liters</button>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Saved Volume (Liters)</label>
+                        <input type="number" id="saved-volume" class="w-full bg-white border border-slate-300 rounded p-3 font-black text-slate-700 text-lg" value="20000">
+                    </div>
+                </div>
+
+                <button id="save-settings" class="w-full bg-cyan-600 text-white font-bold py-4 rounded-xl shadow-md active:scale-95 transition-transform">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+
+        <div class="px-6 pb-6 text-center">
+            <a href="/history" class="text-[10px] text-slate-400 font-bold hover:text-cyan-600 transition-colors uppercase tracking-widest">History Log 📖</a>
+        </div>
+
+        <div id="results-card" class="bg-slate-50 p-6 border-t border-slate-200 hidden">
+            <h2 class="text-lg font-bold text-slate-700 mb-2">Final Prescription:</h2>
+            <ul id="plan-list" class="space-y-2"></ul>
+        </div>
+    </div>
+
+    <script>
+        const sliders = { fcl: document.getElementById('slide-fcl'), alk: document.getElementById('slide-alk'), ph: document.getElementById('slide-ph'), th: document.getElementById('slide-th') };
+        const pads = { fcl: document.getElementById('pad-fcl'), alk: document.getElementById('pad-alk'), ph: document.getElementById('pad-ph'), th: document.getElementById('pad-th') };
+        const displayVals = { fcl: document.getElementById('val-fcl'), alk: document.getElementById('val-alk'), ph: document.getElementById('val-ph'), th: document.getElementById('val-th') };
+        const preview = document.getElementById('strip-preview');
+        const placeholder = document.getElementById('preview-placeholder');
+
+        // SLIDER COLOR LOGIC
+        sliders.fcl.addEventListener('input', (e) => {
+            const val = e.target.value;
+            displayVals.fcl.innerText = val;
+            pads.fcl.style.backgroundColor = val > 0 ? `hsl(300, ${val * 10}%, ${90 - (val * 4)}%)` : '#f8fafc';
+        });
+
+        sliders.alk.addEventListener('input', (e) => {
+            displayVals.alk.innerText = e.target.value;
+            pads.alk.style.backgroundColor = `hsl(${60 + (e.target.value * 0.3)}, 60%, ${50 - (e.target.value * 0.1)}%)`;
+        });
+
+        sliders.ph.addEventListener('input', (e) => {
+            displayVals.ph.innerText = e.target.value;
+            let hue = 40 - ((e.target.value - 6.2) * 20);
+            pads.ph.style.backgroundColor = `hsl(${hue < 0 ? 0 : hue}, 80%, 50%)`;
+        });
+
+        sliders.th.addEventListener('input', (e) => {
+            displayVals.th.innerText = e.target.value;
+            let val = parseInt(e.target.value);
+            pads.th.style.backgroundColor = `hsl(${210 + (val * 0.1)}, 60%, ${70 - (val * 0.05)}%)`;
+        });
+
+        // Trigger initial state
+        Object.values(sliders).forEach(s => s.dispatchEvent(new Event('input')));
+
+        // STATE
+        let pendingBase64 = null;
+        let pendingCoords = [];
+        let savedVolume = localStorage.getItem('pool_volume') || 20000;
+        let savedBrand = localStorage.getItem('strip_brand') || 'aquarius_4way';
+
+        // SETTINGS LOGIC
+        const modal = document.getElementById('settings-modal');
+        const inputVol = document.getElementById('saved-volume');
+        const selectBrand = document.getElementById('brand-select');
+        
+        document.getElementById('btn-settings').addEventListener('click', () => {
+            inputVol.value = savedVolume;
+            selectBrand.value = savedBrand;
+            modal.classList.remove('hidden');
+        });
+        
+        document.getElementById('close-settings').addEventListener('click', () => modal.classList.add('hidden'));
+        
+        document.getElementById('btn-calc-vol').addEventListener('click', () => {
+            const d = parseFloat(document.getElementById('calc-diameter').value);
+            const h = parseFloat(document.getElementById('calc-depth').value);
+            if (d && h) {
+                const r = d / 2;
+                const cuFt = Math.PI * (r * r) * h;
+                inputVol.value = Math.round(cuFt * 28.3168);
+            }
+        });
+
+        document.getElementById('save-settings').addEventListener('click', () => {
+            savedVolume = inputVol.value;
+            savedBrand = selectBrand.value;
+            localStorage.setItem('pool_volume', savedVolume);
+            localStorage.setItem('strip_brand', savedBrand);
+            modal.classList.add('hidden');
+            applyBrandUI();
+        });
+
+        function applyBrandUI() {
+            if (savedBrand === 'custom') {
+                document.getElementById('camera-section').classList.add('hidden');
+                placeholder.innerText = "Custom Brand: Manual entry only";
+            } else {
+                document.getElementById('camera-section').classList.remove('hidden');
+                if (!pendingBase64) {
+                    placeholder.innerText = "Upload to start";
+                } else if (pendingCoords.length < 4) {
+                    placeholder.innerText = `Tap the ${padNames[pendingCoords.length]} pad...`;
+                } else {
+                    placeholder.innerText = "Analyzing...";
+                }
+            }
+        }
+        applyBrandUI();
+
+        // CAMERA FLOW
+        const padNames = ["Chlorine", "Alkalinity", "pH", "Hardness"];
+
+        document.getElementById('camera-btn').addEventListener('click', () => {
+            if (pendingBase64) {
+                if(!confirm("Are you sure you want to delete the current photo and take a new one?")) return;
+                pendingBase64 = null;
+                pendingCoords = [];
+                preview.src = '';
+                preview.classList.add('hidden');
+                placeholder.innerText = "Upload to start";
+            }
+            document.getElementById('camera-input').click();
+        });
+
+        document.getElementById('camera-input').addEventListener('change', (e) => {
+            if (!e.target.files.length) return;
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                pendingBase64 = event.target.result;
+                preview.src = pendingBase64;
+                preview.classList.remove('hidden');
+                pendingCoords = [];
+                placeholder.innerText = `Tap the ${padNames[0]} pad...`;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        preview.addEventListener('click', async (e) => {
+            if (!pendingBase64 || pendingCoords.length >= 4) return;
+            const rect = preview.getBoundingClientRect();
+            const ratio = Math.min(rect.width / preview.naturalWidth, rect.height / preview.naturalHeight);
+            const renderWidth = preview.naturalWidth * ratio;
+            const renderHeight = preview.naturalHeight * ratio;
+            const offsetX = (rect.width - renderWidth) / 2;
+            const offsetY = (rect.height - renderHeight) / 2;
+            const clickX = e.clientX - rect.left - offsetX;
+            const clickY = e.clientY - rect.top - offsetY;
+            if (clickX < 0 || clickX > renderWidth || clickY < 0 || clickY > renderHeight) return;
+            const x = Math.round(clickX / ratio);
+            const y = Math.round(clickY / ratio);
+            pendingCoords.push({x, y});
+            
+            if (pendingCoords.length < 4) {
+                placeholder.innerText = `Tap the ${padNames[pendingCoords.length]} pad...`;
+            } else {
+                placeholder.innerText = "Analyzing...";
+                const payload = { 
+                    image_base64: pendingBase64, 
+                    coords: pendingCoords,
+                    brand: savedBrand,
+                    volume: savedVolume
+                };
+                try {
+                    const response = await fetch('/analyze_pixels', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload) 
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if(data.detected_levels) {
+                        sliders.fcl.value = data.detected_levels.fcl;
+                        sliders.alk.value = data.detected_levels.alk;
+                        sliders.ph.value = data.detected_levels.ph;
+                        sliders.th.value = data.detected_levels.th;
+                        Object.values(sliders).forEach(s => s.dispatchEvent(new Event('input')));
+                        displayPlan(data);
+                        placeholder.innerText = "Done! Click 'Take Photo' to try again.";
+                    } else if (data.error) {
+                        placeholder.innerText = `Error: ${data.error}`;
+                    }
+                } catch(err) {
+                    placeholder.innerText = "Error connecting to server.";
+                }
+            }
+        });
+
+        async function displayPlan(data) {
+            const list = document.getElementById('plan-list');
+            list.innerHTML = ''; 
+            data.treatment_plan.forEach(item => {
+                list.innerHTML += `<li class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-${item.color}-500 text-xs font-bold text-slate-800">${item.title}: <span class="font-normal text-slate-500">${item.action}</span></li>`;
+            });
+            document.getElementById('results-card').classList.remove('hidden');
+        }
+
+        document.getElementById('scan-manual-btn').addEventListener('click', async () => {
+            const payload = { 
+                fcl: sliders.fcl.value, 
+                alk: sliders.alk.value, 
+                ph: sliders.ph.value, 
+                th: sliders.th.value,
+                volume: savedVolume
+            };
+            const response = await fetch('/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            displayPlan(await response.json());
+        });
+    </script>
+</body>
+</html>
