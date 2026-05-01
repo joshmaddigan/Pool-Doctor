@@ -11,8 +11,8 @@ import base64
 app = Flask(__name__)
 
 # ==========================================
-# Absolute path for PythonAnywhere deployment
-DB_PATH = os.path.join(os.path.dirname(__file__), 'pool_history.db')
+# Use environment variable for DB path if provided (for Railway persistent volumes)
+DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'pool_history.db'))
 
 # ==========================================
 # 1. THE VISION MATRIX
@@ -211,4 +211,5 @@ def analyze_pixels():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

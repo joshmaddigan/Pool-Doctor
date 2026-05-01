@@ -2,3 +2,6 @@
 __pycache__/
 pool_history.db
 *.pyc
+.env
+*.zip
+.DS_Store
