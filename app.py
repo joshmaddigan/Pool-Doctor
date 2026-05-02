@@ -10,23 +10,40 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# ==========================================
-# DATABASE CONFIGURATION (Railway Ready)
-# ==========================================
-# Use DATABASE_URL if provided (e.g., PostgreSQL on Railway)
-db_url = os.environ.get('DATABASE_URL')
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+db = SQLAlchemy()
 
-# Fallback to local SQLite if no DB URL is provided
-if not db_url:
-    db_path = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'pool_history.db'))
-    db_url = f"sqlite:///{db_path}"
+def create_app():
+    # ==========================================
+    # DATABASE CONFIGURATION (Railway Ready)
+    # ==========================================
+    db_url = os.environ.get('DATABASE_URL')
+    
+    # Railway sometimes provides 'postgres://', SQLAlchemy needs 'postgresql://'
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # Fallback to local SQLite
+    if not db_url:
+        # Use /tmp for ephemeral storage if we can't write to the current directory
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        db_path = os.path.join(base_dir, 'pool_history.db')
+        db_url = f"sqlite:///{db_path}"
+        print(f"DEBUG: Using SQLite at {db_path}")
 
-db = SQLAlchemy(app)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    db.init_app(app)
+    
+    with app.app_context():
+        try:
+            db.create_all()
+            print("DATABASE: Tables verified/created successfully.")
+        except Exception as e:
+            print(f"DATABASE ERROR: {e}")
+            # Non-fatal during startup to allow the app to at least boot
+    
+    return app
 
 class Scan(db.Model):
     __tablename__ = 'scans'
@@ -38,9 +55,8 @@ class Scan(db.Model):
     th = db.Column(db.Float)
     weather_trend = db.Column(db.String)
 
-# Ensure tables are created
-with app.app_context():
-    db.create_all()
+# Initialize the app and DB
+create_app()
 
 # ==========================================
 # 1. THE VISION MATRIX
