@@ -10,6 +10,25 @@
 {% endblock %}
 
 {% block content %}
+    <!-- TUTORIAL / ONBOARDING -->
+    <div id="tutorial-card" class="card" style="margin: 1.5rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; display: none; border: none; animation: slideIn 0.5s ease-out;">
+        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 1rem; font-size: 1.5rem;">
+                👋
+            </div>
+            <div>
+                <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 900;">Welcome to Pool Doctor!</h3>
+                <p style="margin: 0; font-size: 0.85rem; opacity: 0.9; line-height: 1.4;">
+                    To get accurate chemical dosages, please tap the <strong>Gear icon ⚙️</strong> above to:
+                </p>
+                <ul style="margin: 0.5rem 0 0 0; padding-left: 1.25rem; font-size: 0.8rem; opacity: 0.9;">
+                    <li>Select your <strong>Test Strip Brand</strong></li>
+                    <li>Enter your <strong>Pool Volume</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <!-- SCANNER SECTION -->
     <div class="scanner-grid">
         <div class="strip-preview-box">
@@ -163,7 +182,15 @@
         const modal = document.getElementById('settings-modal');
         const inputVol = document.getElementById('saved-volume');
         const selectBrand = document.getElementById('brand-select');
+        const tutorialCard = document.getElementById('tutorial-card');
+        const settingsBtn = document.getElementById('btn-settings');
         
+        // ONBOARDING CHECK
+        if (!localStorage.getItem('pool_setup_complete')) {
+            tutorialCard.style.display = 'block';
+            settingsBtn.classList.add('pulse-animation');
+        }
+
         document.getElementById('btn-settings').addEventListener('click', () => {
             inputVol.value = savedVolume;
             selectBrand.value = savedBrand;
@@ -187,7 +214,10 @@
             savedBrand = selectBrand.value;
             localStorage.setItem('pool_volume', savedVolume);
             localStorage.setItem('strip_brand', savedBrand);
+            localStorage.setItem('pool_setup_complete', 'true');
             modal.classList.add('hidden');
+            tutorialCard.style.display = 'none';
+            settingsBtn.classList.remove('pulse-animation');
             applyBrandUI();
         });
 
