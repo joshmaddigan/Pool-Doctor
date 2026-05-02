@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pool Doctor AI{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 style="flex-grow: 1;">Pool Doctor AI 🌊</h1>
+                {% block header_action %}{% endblock %}
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+
+        <footer style="padding: 2rem; text-align: center;">
+            <a href="/history" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em;">
+                History Log 📖
+            </a>
+        </footer>
+    </div>
+</body>
+</html>

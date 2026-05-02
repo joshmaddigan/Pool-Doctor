@@ -1,0 +1,210 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --accent: #06b6d4; /* Cyan 500 */
+    --accent-hover: #0891b2;
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+/* --- NAVIGATION --- */
+nav {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+nav a:hover {
+    color: var(--accent);
+}
+
+/* --- CONTAINER --- */
+.app-container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    min-height: 100vh;
+    box-shadow: var(--shadow-lg);
+}
+
+/* --- HEADER --- */
+header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom-left-radius: 2rem;
+    border-bottom-right-radius: 2rem;
+}
+
+header h1 {
+    margin: 0;
+    font-weight: 900;
+    font-size: 1.5rem;
+}
+
+/* --- CARDS --- */
+.card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    border: 1px solid #f1f5f9;
+}
+
+/* --- SCANNER INTERFACE --- */
+.scanner-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem;
+    background: #f1f5f9;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.strip-preview-box {
+    height: 320px;
+    background: #000;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #cbd5e1;
+}
+
+.digital-match-box {
+    width: 60px;
+    height: 320px;
+    background: white;
+    border-radius: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1.5rem 0;
+    box-shadow: var(--shadow);
+}
+
+.pad {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: background-color 0.3s;
+}
+
+/* --- SLIDERS --- */
+.control-group {
+    margin-bottom: 1.25rem;
+}
+
+.control-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.control-value {
+    color: var(--accent);
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 1rem;
+    appearance: none;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: var(--shadow);
+}
+
+/* --- BUTTONS --- */
+button {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-primary { background: var(--primary); color: white; }
+.btn-accent { background: var(--accent); color: white; }
+.btn-dark { background: var(--text-main); color: white; }
+
+button:active { transform: scale(0.98); }
+
+/* --- MODALS --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+/* --- UTILS --- */
+.hidden { display: none; }
+.text-xs { font-size: 0.75rem; }
+.font-bold { font-weight: 700; }
+.uppercase { text-transform: uppercase; }

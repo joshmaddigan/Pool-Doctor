@@ -1,18 +1,46 @@
-from flask import Flask, render_template, request, jsonify
-import sqlite3
-from datetime import datetime
+import os
+import math
+import base64
 import requests
 import cv2
 import numpy as np
-import math
-import os
-import base64
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
 # ==========================================
-# Use environment variable for DB path if provided (for Railway persistent volumes)
-DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'pool_history.db'))
+# DATABASE CONFIGURATION (Railway Ready)
+# ==========================================
+# Use DATABASE_URL if provided (e.g., PostgreSQL on Railway)
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# Fallback to local SQLite if no DB URL is provided
+if not db_url:
+    db_path = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'pool_history.db'))
+    db_url = f"sqlite:///{db_path}"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+class Scan(db.Model):
+    __tablename__ = 'scans'
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.String, nullable=False, default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    fcl = db.Column(db.Float)
+    alk = db.Column(db.Float)
+    ph = db.Column(db.Float)
+    th = db.Column(db.Float)
+    weather_trend = db.Column(db.String)
+
+# Ensure tables are created
+with app.app_context():
+    db.create_all()
 
 # ==========================================
 # 1. THE VISION MATRIX
@@ -62,7 +90,7 @@ def process_pool_data(fcl_val, alk_val, ph_val, th_val=250.0, volume_l=20000):
     target_fcl = 3.0
     try:
         url = "https://api.open-meteo.com/v1/forecast?latitude=44.18&longitude=-77.57&current=temperature_2m,precipitation,uv_index"
-        res = requests.get(url).json()
+        res = requests.get(url, timeout=5).json()
         temp = res['current']['temperature_2m']
         precip = res['current']['precipitation']
         uv = res['current']['uv_index']
@@ -70,24 +98,26 @@ def process_pool_data(fcl_val, alk_val, ph_val, th_val=250.0, volume_l=20000):
         weather_desc = 'Raining' if precip > 0 else 'Dry'
         weather_trend = f"{temp}°C, UV: {uv}, {weather_desc}"
         
-        # Weather Adjustment for Chlorine Demand
         if temp >= 28.0 or uv >= 6.0:
             target_fcl = 4.0
     except Exception as e:
         weather_trend = "Weather unavailable"
-        print(f"Weather API error: {e}")
+        app.logger.warning(f"Weather API error: {e}")
 
-    # Save to Database
+    # Save to Database (SQLAlchemy handles sessions safely)
     try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS scans (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, fcl REAL, alk REAL, ph REAL, th REAL, weather_trend TEXT)")
-        c.execute("INSERT INTO scans (timestamp, fcl, alk, ph, th, weather_trend) VALUES (?, ?, ?, ?, ?, ?)", 
-                  (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fcl_val, alk_val, ph_val, th_val, weather_trend))
-        conn.commit()
-        conn.close()
+        new_scan = Scan(
+            fcl=fcl_val,
+            alk=alk_val,
+            ph=ph_val,
+            th=th_val,
+            weather_trend=weather_trend
+        )
+        db.session.add(new_scan)
+        db.session.commit()
     except Exception as e:
-        print(f"Database error: {e}")
+        db.session.rollback()
+        app.logger.error(f"Database error: {e}")
 
     # The Math Engine (Dynamic Volume)
     plan = []
@@ -119,25 +149,22 @@ def home(): return render_template('index.html')
 @app.route('/history')
 def view_history():
     try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT * FROM scans ORDER BY timestamp DESC LIMIT 10")
-        scans = c.fetchall()
-        conn.close()
+        scans = Scan.query.order_by(Scan.timestamp.desc()).limit(10).all()
     except Exception as e:
-        print(f"History fetch error: {e}")
+        app.logger.error(f"History fetch error: {e}")
         scans = []
     
-    # Reverse so oldest is first for the chart
     chart_scans = list(reversed(scans))
     
-    labels = [scan[1].split()[0][-5:] for scan in chart_scans] if chart_scans else []
-    fcl_data = [scan[2] for scan in chart_scans] if chart_scans else []
-    ph_data = [scan[4] for scan in chart_scans] if chart_scans else []
+    labels = [scan.timestamp.split()[0][-5:] for scan in chart_scans] if chart_scans else []
+    fcl_data = [scan.fcl for scan in chart_scans] if chart_scans else []
+    ph_data = [scan.ph for scan in chart_scans] if chart_scans else []
     
-    return render_template('history.html', scans=scans, labels=labels, fcl_data=fcl_data, ph_data=ph_data)
+    # Maintain tuple format for backwards compatibility with existing templates
+    scan_tuples = [(s.id, s.timestamp, s.fcl, s.alk, s.ph, s.th, s.weather_trend) for s in scans]
+    
+    return render_template('history.html', scans=scan_tuples, labels=labels, fcl_data=fcl_data, ph_data=ph_data)
 
-# The Manual Slider Route
 @app.route('/scan', methods=['POST'])
 def scan_manual():
     data = request.json
@@ -154,7 +181,6 @@ def scan_manual():
     )
     return jsonify({"treatment_plan": plan})
 
-# THE NEW STATELESS CAMERA FUSION ROUTE
 @app.route('/analyze_pixels', methods=['POST'])
 def analyze_pixels():
     data = request.json
@@ -171,7 +197,6 @@ def analyze_pixels():
         return jsonify({"error": "Unsupported brand selected."}), 400
 
     try:
-        # Decode base64 image
         header, encoded = b64_data.split(",", 1)
         file_bytes = np.frombuffer(base64.b64decode(encoded), np.uint8)
         img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
@@ -181,6 +206,7 @@ def analyze_pixels():
             
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     except Exception as e:
+        app.logger.error(f"Image processing error: {e}")
         return jsonify({"error": f"Image processing error: {str(e)}"}), 400
     
     results = {}
@@ -190,16 +216,13 @@ def analyze_pixels():
         x = coords[i]['x']
         y = coords[i]['y']
         
-        # Ensure boundaries are within 0 and img size
         y_start = max(0, y - 5)
         y_end = min(img_rgb.shape[0], y + 5)
         x_start = max(0, x - 5)
         x_end = min(img_rgb.shape[1], x + 5)
         
-        # Sample an average 10x10 area around the chosen pixel
         pad_crop = img_rgb[y_start:y_end, x_start:x_end]
         
-        # If the crop is empty (out of bounds), fallback gracefully
         if pad_crop.size == 0:
             final_rgb = (255, 255, 255)
         else:

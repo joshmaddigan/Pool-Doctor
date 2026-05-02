@@ -1,149 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Pro AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-cyan-50 min-h-screen flex justify-center py-4 px-2">
+{% extends "base.html" %}
 
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative">
-        
-        <!-- HEADER -->
-        <div class="bg-cyan-600 text-white p-4 rounded-b-3xl shadow-md flex justify-between items-center">
-            <h1 class="text-xl font-black tracking-tight">Pool Pro AI 🌊</h1>
-            <button id="btn-settings" class="text-white hover:text-cyan-200 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+{% block header_action %}
+    <button id="btn-settings" style="background: transparent; color: white; width: auto; padding: 0;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+    </button>
+{% endblock %}
+
+{% block content %}
+    <!-- SCANNER SECTION -->
+    <div class="scanner-grid">
+        <div class="strip-preview-box">
+            <img id="strip-preview" style="width: 100%; height: 100%; object-fit: contain;" class="hidden">
+            <div id="preview-overlay" style="position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; padding: 0.5rem; text-align: center; font-size: 0.7rem; font-weight: 700;">
+                <span id="preview-placeholder">Upload to start</span>
+            </div>
+        </div>
+
+        <div class="digital-match-box">
+            <div id="pad-fcl" class="pad"></div>
+            <div id="pad-alk" class="pad"></div>
+            <div id="pad-ph" class="pad"></div>
+            <div id="pad-th" class="pad"></div>
+        </div>
+    </div>
+
+    <!-- CONTROLS SECTION -->
+    <div style="padding: 1.5rem;">
+        <div class="control-group">
+            <div class="control-label">
+                <span>Chlorine</span>
+                <span id="val-fcl" class="control-value">0.0</span>
+            </div>
+            <input type="range" id="slide-fcl" min="0" max="10" step="0.5" value="0">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Alkalinity</span>
+                <span id="val-alk" class="control-value">80</span>
+            </div>
+            <input type="range" id="slide-alk" min="0" max="240" step="10" value="80">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>pH Level</span>
+                <span id="val-ph" class="control-value">7.4</span>
+            </div>
+            <input type="range" id="slide-ph" min="6.2" max="9.0" step="0.2" value="7.4">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Hardness</span>
+                <span id="val-th" class="control-value">250</span>
+            </div>
+            <input type="range" id="slide-th" min="0" max="1000" step="50" value="250">
+        </div>
+
+        <div id="camera-section" style="margin-top: 2rem;">
+            <button id="camera-btn" class="btn-primary">
+                📸 Take Photo / Scan Strip
+            </button>
+            <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <button id="scan-manual-btn" class="btn-accent">
+                🧪 Calculate Prescription
             </button>
         </div>
+    </div>
 
-        <div class="p-4 bg-slate-100 flex justify-center space-x-6 border-b border-slate-200">
-            
-            <div class="flex flex-col items-center flex-none w-48">
-                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Physical Strip</p>
-                <div class="w-full h-80 bg-slate-200 rounded-lg overflow-hidden border-2 border-slate-300 shadow-inner flex items-center justify-center bg-black relative">
-                    <img id="strip-preview" class="h-full w-full hidden" alt="Test Strip Preview" style="object-fit: contain;">
-                    <div id="preview-placeholder-bg" class="absolute bottom-0 w-full bg-black/60 py-2 flex justify-center">
-                        <span id="preview-placeholder" class="text-[10px] text-white font-bold text-center px-2">Upload to start</span>
-                    </div>
-                </div>
+    <!-- RESULTS SECTION -->
+    <div id="results-card" class="card hidden" style="margin: 0 1.5rem; background: var(--bg-main);">
+        <h2 style="font-size: 1rem; margin-top: 0;">Final Prescription:</h2>
+        <ul id="plan-list" style="padding: 0; list-style: none;"></ul>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0; font-size: 1.25rem;">App Settings</h2>
+                <button id="close-settings" style="width: auto; background: transparent; color: var(--text-muted); padding: 0;">✕</button>
             </div>
 
-            <div class="flex flex-col items-center">
-                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Digital Match</p>
-                <div class="w-16 h-80 bg-white rounded-full border-2 border-slate-200 flex flex-col justify-between items-center py-6 shadow-md">
-                    <div id="pad-fcl" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors"></div>
-                    <div id="pad-alk" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors"></div>
-                    <div id="pad-ph" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors"></div>
-                    <div id="pad-th" class="w-12 h-12 rounded-sm shadow-sm border border-black/10 transition-colors bg-cyan-800"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="p-6 space-y-4">
-            <div class="flex flex-col">
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase">Chlorine</label>
-                    <span id="val-fcl" class="text-sm font-black text-cyan-600">0.0</span>
-                </div>
-                <input type="range" id="slide-fcl" min="0" max="10" step="0.5" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+            <div style="margin-bottom: 1.5rem;">
+                <label class="control-label">Test Strip Brand</label>
+                <select id="brand-select" style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; font-weight: 600;">
+                    <option value="aquarius_4way">Aquarius 4-Way</option>
+                    <option value="clorox_6way">Clorox Pool&Spa 6-Way</option>
+                    <option value="aquachek_7way">AquaChek 7-Way</option>
+                    <option value="hth_6way">HTH 6-Way</option>
+                    <option value="custom">Custom (Manual Only)</option>
+                </select>
             </div>
 
-            <div class="flex flex-col">
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase">Alkalinity</label>
-                    <span id="val-alk" class="text-sm font-black text-cyan-600">80</span>
-                </div>
-                <input type="range" id="slide-alk" min="0" max="240" step="10" value="80" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-green-600">
-            </div>
-
-            <div class="flex flex-col">
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase">pH Level</label>
-                    <span id="val-ph" class="text-sm font-black text-cyan-600">7.4</span>
-                </div>
-                <input type="range" id="slide-ph" min="6.2" max="9.0" step="0.2" value="7.4" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-500">
-            </div>
-
-            <div class="flex flex-col">
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase">Hardness</label>
-                    <span id="val-th" class="text-sm font-black text-cyan-600">250</span>
-                </div>
-                <input type="range" id="slide-th" min="0" max="1000" step="50" value="250" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-            </div>
-
-            <div id="camera-section" class="pt-4 flex flex-col space-y-3">
-                <button id="camera-btn" class="bg-purple-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-transform">
-                    <span>📸 Take Photo / Scan Strip</span>
-                </button>
-                <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
-            </div>
-
-            <div class="pt-2 flex flex-col space-y-3">
-                <button id="scan-manual-btn" class="bg-cyan-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-transform">
-                    <span>🧪 Calculate (Manual Entry)</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- SETTINGS MODAL -->
-        <div id="settings-modal" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
-            <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-black text-slate-800">App Settings</h2>
-                    <button id="close-settings" class="text-slate-400 hover:text-slate-600">✕</button>
-                </div>
-
-                <!-- Strip Brand -->
-                <div class="mb-6">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Test Strip Brand</label>
-                    <select id="brand-select" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-3 font-bold text-slate-700">
-                        <option value="aquarius_4way">Aquarius 4-Way</option>
-                        <option value="clorox_6way">Clorox Pool&Spa 6-Way</option>
-                        <option value="aquachek_7way">AquaChek 7-Way</option>
-                        <option value="hth_6way">HTH 6-Way</option>
-                        <option value="custom">Custom (Manual Only)</option>
-                    </select>
-                </div>
-
-                <!-- Pool Calculator -->
-                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <label class="block text-xs font-bold text-cyan-600 uppercase mb-3">Pool Volume Calculator</label>
-                    <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Diameter (ft)</label>
-                            <input type="number" id="calc-diameter" class="w-full bg-white border border-slate-300 rounded p-2 text-sm" placeholder="e.g. 18">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Depth (ft)</label>
-                            <input type="number" id="calc-depth" class="w-full bg-white border border-slate-300 rounded p-2 text-sm" placeholder="e.g. 4">
-                        </div>
-                    </div>
-                    <button id="btn-calc-vol" class="w-full bg-slate-800 text-white text-xs font-bold py-2 rounded-lg mb-3">Calculate Liters</button>
+            <div class="card" style="background: var(--bg-main); padding: 1rem;">
+                <label class="control-label" style="color: var(--accent);">Pool Volume Calculator</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Saved Volume (Liters)</label>
-                        <input type="number" id="saved-volume" class="w-full bg-white border border-slate-300 rounded p-3 font-black text-slate-700 text-lg" value="20000">
+                        <label class="text-xs uppercase font-bold text-muted">Diameter (ft)</label>
+                        <input type="number" id="calc-diameter" style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase font-bold text-muted">Depth (ft)</label>
+                        <input type="number" id="calc-depth" style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #cbd5e1;">
                     </div>
                 </div>
-
-                <button id="save-settings" class="w-full bg-cyan-600 text-white font-bold py-4 rounded-xl shadow-md active:scale-95 transition-transform">
-                    Save Settings
-                </button>
+                <button id="btn-calc-vol" class="btn-dark" style="padding: 0.5rem; font-size: 0.8rem; margin-bottom: 1rem;">Calculate Liters</button>
+                
+                <label class="text-xs uppercase font-bold text-muted">Saved Volume (Liters)</label>
+                <input type="number" id="saved-volume" style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; font-weight: 900; font-size: 1.25rem;" value="20000">
             </div>
-        </div>
 
-        <div class="px-6 pb-6 text-center">
-            <a href="/history" class="text-[10px] text-slate-400 font-bold hover:text-cyan-600 transition-colors uppercase tracking-widest">History Log 📖</a>
-        </div>
-
-        <div id="results-card" class="bg-slate-50 p-6 border-t border-slate-200 hidden">
-            <h2 class="text-lg font-bold text-slate-700 mb-2">Final Prescription:</h2>
-            <ul id="plan-list" class="space-y-2"></ul>
+            <button id="save-settings" class="btn-primary" style="margin-top: 1rem;">Save & Close</button>
         </div>
     </div>
 
@@ -178,16 +153,13 @@
             pads.th.style.backgroundColor = `hsl(${210 + (val * 0.1)}, 60%, ${70 - (val * 0.05)}%)`;
         });
 
-        // Trigger initial state
         Object.values(sliders).forEach(s => s.dispatchEvent(new Event('input')));
 
-        // STATE
         let pendingBase64 = null;
         let pendingCoords = [];
         let savedVolume = localStorage.getItem('pool_volume') || 20000;
         let savedBrand = localStorage.getItem('strip_brand') || 'aquarius_4way';
 
-        // SETTINGS LOGIC
         const modal = document.getElementById('settings-modal');
         const inputVol = document.getElementById('saved-volume');
         const selectBrand = document.getElementById('brand-select');
@@ -222,7 +194,7 @@
         function applyBrandUI() {
             if (savedBrand === 'custom') {
                 document.getElementById('camera-section').classList.add('hidden');
-                placeholder.innerText = "Custom Brand: Manual entry only";
+                placeholder.innerText = "Manual entry only";
             } else {
                 document.getElementById('camera-section').classList.remove('hidden');
                 if (!pendingBase64) {
@@ -236,12 +208,11 @@
         }
         applyBrandUI();
 
-        // CAMERA FLOW
         const padNames = ["Chlorine", "Alkalinity", "pH", "Hardness"];
 
         document.getElementById('camera-btn').addEventListener('click', () => {
             if (pendingBase64) {
-                if(!confirm("Are you sure you want to delete the current photo and take a new one?")) return;
+                if(!confirm("Start new scan?")) return;
                 pendingBase64 = null;
                 pendingCoords = [];
                 preview.src = '';
@@ -260,7 +231,7 @@
                 preview.src = pendingBase64;
                 preview.classList.remove('hidden');
                 pendingCoords = [];
-                placeholder.innerText = `Tap the ${padNames[0]} pad...`;
+                placeholder.innerText = `Tap ${padNames[0]}...`;
             };
             reader.readAsDataURL(file);
         });
@@ -281,7 +252,7 @@
             pendingCoords.push({x, y});
             
             if (pendingCoords.length < 4) {
-                placeholder.innerText = `Tap the ${padNames[pendingCoords.length]} pad...`;
+                placeholder.innerText = `Tap ${padNames[pendingCoords.length]}...`;
             } else {
                 placeholder.innerText = "Analyzing...";
                 const payload = { 
@@ -296,9 +267,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload) 
                     });
-                    
                     const data = await response.json();
-                    
                     if(data.detected_levels) {
                         sliders.fcl.value = data.detected_levels.fcl;
                         sliders.alk.value = data.detected_levels.alk;
@@ -306,12 +275,10 @@
                         sliders.th.value = data.detected_levels.th;
                         Object.values(sliders).forEach(s => s.dispatchEvent(new Event('input')));
                         displayPlan(data);
-                        placeholder.innerText = "Done! Click 'Take Photo' to try again.";
-                    } else if (data.error) {
-                        placeholder.innerText = `Error: ${data.error}`;
+                        placeholder.innerText = "Scan Complete! ✅";
                     }
                 } catch(err) {
-                    placeholder.innerText = "Error connecting to server.";
+                    placeholder.innerText = "Error analyzing.";
                 }
             }
         });
@@ -320,7 +287,8 @@
             const list = document.getElementById('plan-list');
             list.innerHTML = ''; 
             data.treatment_plan.forEach(item => {
-                list.innerHTML += `<li class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-${item.color}-500 text-xs font-bold text-slate-800">${item.title}: <span class="font-normal text-slate-500">${item.action}</span></li>`;
+                let borderColor = item.color === 'green' ? 'var(--success)' : (item.color === 'red' ? 'var(--danger)' : '#fbbf24');
+                list.innerHTML += `<li style="background: white; padding: 1rem; margin-bottom: 0.5rem; border-radius: 0.5rem; border-left: 4px solid ${borderColor}; box-shadow: var(--shadow); font-size: 0.8rem; font-weight: 700;">${item.title}: <span style="font-weight: 400; color: var(--text-muted);">${item.action}</span></li>`;
             });
             document.getElementById('results-card').classList.remove('hidden');
         }
@@ -337,5 +305,4 @@
             displayPlan(await response.json());
         });
     </script>
-</body>
-</html>
+{% endblock %}

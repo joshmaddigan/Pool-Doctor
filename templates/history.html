@@ -1,85 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Pro AI - History Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+{% extends "base.html" %}
+
+{% block title %}Pool Doctor - History Dashboard{% endblock %}
+
+{% block head %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-slate-900 min-h-screen flex justify-center py-0 md:py-8">
+{% endblock %}
 
-    <div class="bg-slate-800 w-full max-w-md md:rounded-3xl shadow-2xl overflow-hidden border border-slate-700 flex flex-col min-h-screen md:min-h-0">
-        
-        <!-- Header -->
-        <div class="bg-cyan-600 text-white text-center py-6 px-4 shadow-md relative">
-            <a href="/" class="absolute left-4 top-6 text-cyan-200 hover:text-white text-sm font-bold flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back
-            </a>
-            <h1 class="text-xl font-black tracking-wide">Pool Dashboard 📈</h1>
-            <p class="text-cyan-100 text-xs font-bold uppercase tracking-widest mt-1">Health Trends</p>
-        </div>
+{% block header_action %}
+    <a href="/" style="color: white; text-decoration: none; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.25rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="height: 1rem; width: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back
+    </a>
+{% endblock %}
 
-        <!-- Chart Section -->
-        <div class="p-4 bg-slate-800 border-b border-slate-700">
-            <div class="bg-slate-900 rounded-xl p-4 shadow-inner border border-slate-700">
-                <canvas id="historyChart" height="200" 
-                    data-labels='{{ labels | tojson | safe }}' 
-                    data-fcl='{{ fcl_data | tojson | safe }}' 
-                    data-ph='{{ ph_data | tojson | safe }}'>
-                </canvas>
-            </div>
-        </div>
-
-        <!-- History Feed -->
-        <div class="p-4 flex-grow flex flex-col space-y-4 overflow-y-auto bg-slate-800">
-            <h2 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Recent Scans</h2>
-            
-            {% for row in scans %}
-            <div class="bg-slate-700 p-4 rounded-xl shadow-sm border border-slate-600">
-                <div class="flex justify-between items-center mb-4 border-b border-slate-600 pb-2">
-                    <span class="text-xs font-bold text-slate-300">{{ row[1] }}</span>
-                    <span class="text-[10px] font-bold bg-slate-800 text-cyan-400 py-1 px-3 rounded-full border border-slate-600">🌤️ {{ row[6] }}</span>
-                </div>
-                
-                <div class="grid grid-cols-4 gap-2 text-center">
-                    <div>
-                        <p class="text-[10px] uppercase text-slate-400 font-bold">FCL</p>
-                        <p class="text-lg font-black text-white">{{ row[2] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase text-slate-400 font-bold">ALK</p>
-                        <p class="text-lg font-black text-white">{{ row[3] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase text-slate-400 font-bold">pH</p>
-                        <p class="text-lg font-black text-white">{{ row[4] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase text-slate-400 font-bold">Hardness</p>
-                        <p class="text-lg font-black text-white">{{ row[5] }}</p>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="text-center py-10 text-slate-500">
-                <p>No scans found.</p>
-                <p class="text-sm mt-2">Go dip a strip in the pool!</p>
-            </div>
-            {% endfor %}
-
+{% block content %}
+    <!-- Chart Section -->
+    <div style="padding: 1.5rem; background: var(--bg-main); border-bottom: 1px solid #e2e8f0;">
+        <div class="card" style="margin-bottom: 0;">
+            <canvas id="historyChart" height="220" 
+                data-labels='{{ labels | tojson | safe }}' 
+                data-fcl='{{ fcl_data | tojson | safe }}' 
+                data-ph='{{ ph_data | tojson | safe }}'>
+            </canvas>
         </div>
     </div>
 
-    <!-- Inject Chart Data -->
+    <!-- History Feed -->
+    <div style="padding: 1.5rem;">
+        <h2 style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 1rem;">
+            Recent Scans
+        </h2>
+        
+        {% for row in scans %}
+        <div class="card" style="padding: 1.25rem; margin-bottom: 1rem; border-left: 4px solid var(--accent);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; pb-2;">
+                <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">{{ row[1] }}</span>
+                <span style="font-size: 0.6rem; font-weight: 800; background: var(--bg-main); color: var(--primary); padding: 0.25rem 0.75rem; rounded-pill: true; border: 1px solid #e2e8f0; border-radius: 1rem;">
+                    🌤️ {{ row[6] }}
+                </span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center;">
+                <div>
+                    <p style="font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">FCL</p>
+                    <p style="font-size: 1.1rem; font-weight: 900; color: var(--text-main); margin: 0;">{{ row[2] }}</p>
+                </div>
+                <div>
+                    <p style="font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">ALK</p>
+                    <p style="font-size: 1.1rem; font-weight: 900; color: var(--text-main); margin: 0;">{{ row[3] }}</p>
+                </div>
+                <div>
+                    <p style="font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">pH</p>
+                    <p style="font-size: 1.1rem; font-weight: 900; color: var(--text-main); margin: 0;">{{ row[4] }}</p>
+                </div>
+                <div>
+                    <p style="font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">Hard</p>
+                    <p style="font-size: 1.1rem; font-weight: 900; color: var(--text-main); margin: 0;">{{ row[5] }}</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+            <p style="font-weight: 700;">No scans found.</p>
+            <p style="font-size: 0.8rem;">Go dip a strip in the pool!</p>
+        </div>
+        {% endfor %}
+    </div>
+
     <script>
         const canvas = document.getElementById('historyChart');
         const ctx = canvas.getContext('2d');
         
-        // Safely parse data from HTML attributes to keep the JS linter happy
         const labels = JSON.parse(canvas.dataset.labels);
         const fclData = JSON.parse(canvas.dataset.fcl);
         const phData = JSON.parse(canvas.dataset.ph);
@@ -90,22 +83,24 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Chlorine (FCL)',
+                        label: 'Chlorine',
                         data: fclData,
-                        borderColor: 'rgba(34, 211, 238, 1)', // Cyan 400
-                        backgroundColor: 'rgba(34, 211, 238, 0.1)',
+                        borderColor: '#6366f1', // Indigo
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
                         borderWidth: 3,
-                        pointBackgroundColor: 'rgba(34, 211, 238, 1)',
+                        pointRadius: 4,
+                        pointBackgroundColor: '#6366f1',
                         tension: 0.4,
                         yAxisID: 'y'
                     },
                     {
                         label: 'pH Level',
                         data: phData,
-                        borderColor: 'rgba(249, 115, 22, 1)', // Orange 500
-                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        borderColor: '#06b6d4', // Cyan
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
                         borderWidth: 3,
-                        pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+                        pointRadius: 4,
+                        pointBackgroundColor: '#06b6d4',
                         tension: 0.4,
                         yAxisID: 'y1'
                     }
@@ -113,29 +108,25 @@
             },
             options: {
                 responsive: true,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
                 plugins: {
                     legend: {
                         labels: {
-                            color: '#94a3b8', // slate-400
-                            font: { size: 10, weight: 'bold' }
+                            color: '#64748b',
+                            font: { size: 10, weight: 'bold', family: "'Inter', sans-serif" }
                         }
                     }
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#64748b', font: { size: 10 } }, // slate-500
-                        grid: { color: 'rgba(71, 85, 105, 0.2)' }
+                        ticks: { color: '#94a3b8', font: { size: 9 } },
+                        grid: { display: false }
                     },
                     y: {
                         type: 'linear',
                         display: true,
                         position: 'left',
-                        ticks: { color: 'rgba(34, 211, 238, 1)' },
-                        grid: { color: 'rgba(71, 85, 105, 0.2)' },
+                        ticks: { color: '#6366f1', font: { weight: 'bold' } },
+                        grid: { color: '#f1f5f9' },
                         suggestedMin: 0,
                         suggestedMax: 5
                     },
@@ -143,8 +134,8 @@
                         type: 'linear',
                         display: true,
                         position: 'right',
-                        ticks: { color: 'rgba(249, 115, 22, 1)' },
-                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#06b6d4', font: { weight: 'bold' } },
+                        grid: { display: false },
                         suggestedMin: 6.8,
                         suggestedMax: 8.4
                     }
@@ -152,5 +143,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}
