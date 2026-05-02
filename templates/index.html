@@ -31,12 +31,18 @@
 
     <!-- SCANNER SECTION -->
     <div class="scanner-grid">
-        <div class="strip-preview-box" id="preview-container" style="position: relative; cursor: crosshair;">
-            <img id="strip-preview" style="width: 100%; height: 100%; object-fit: contain;" class="hidden">
-            <div id="magnifier" style="position: absolute; width: 100px; height: 100px; border: 4px solid white; border-radius: 50%; overflow: hidden; pointer-events: none; display: none; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 100;">
-                <img id="mag-img" style="position: absolute; transform: scale(4); transform-origin: 0 0;">
+        <div class="strip-preview-box" id="preview-container" style="position: relative; overflow: hidden; cursor: grab;">
+            <div id="zoom-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transition: transform 0.1s ease-out;">
+                <img id="strip-preview" style="max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none;" class="hidden">
             </div>
-            <div id="preview-overlay" style="position: absolute; bottom: 0; width: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); color: white; padding: 0.75rem; text-align: center; font-size: 0.8rem; font-weight: 800; border-top: 1px solid rgba(255,255,255,0.1);">
+            
+            <!-- ZOOM CONTROLS -->
+            <div id="zoom-controls" class="hidden" style="position: absolute; top: 1rem; right: 1rem; display: flex; flex-direction: column; gap: 0.5rem; z-index: 100;">
+                <button id="btn-zoom-in" style="width: 40px; height: 40px; border-radius: 50%; background: white; color: var(--primary); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">+</button>
+                <button id="btn-zoom-out" style="width: 40px; height: 40px; border-radius: 50%; background: white; color: var(--primary); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">-</button>
+            </div>
+
+            <div id="preview-overlay" style="position: absolute; bottom: 0; width: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); color: white; padding: 0.75rem; text-align: center; font-size: 0.8rem; font-weight: 800; border-top: 1px solid rgba(255,255,255,0.1); pointer-events: none;">
                 <span id="preview-placeholder">Upload to start</span>
             </div>
             <div id="tap-indicator" style="position: absolute; width: 24px; height: 24px; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 10px #6366f1; pointer-events: none; display: none; animation: pulse 1s infinite;"></div>
@@ -226,10 +232,16 @@
         });
 
         const padNames = ["Chlorine", "Alkalinity", "pH", "Hardness"];
-        const magnifier = document.getElementById('magnifier');
-        const magImg = document.getElementById('mag-img');
+        const zoomWrapper = document.getElementById('zoom-wrapper');
         const tapIndicator = document.getElementById('tap-indicator');
         const previewContainer = document.getElementById('preview-container');
+        const zoomControls = document.getElementById('zoom-controls');
+
+        let currentScale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let startX, startY;
 
         function applyBrandUI() {
             if (savedBrand === 'custom') {
@@ -239,98 +251,82 @@
                 document.getElementById('camera-section').classList.remove('hidden');
                 if (!pendingBase64) {
                     placeholder.innerHTML = 'Step 1: <span style="font-weight: 400; opacity: 0.8;">Upload photo of strip</span>';
+                    zoomControls.classList.add('hidden');
                 } else if (pendingCoords.length < 4) {
                     placeholder.innerHTML = `Step 2: <span style="color: var(--accent);">Tap the ${padNames[pendingCoords.length]} pad</span>`;
+                    zoomControls.classList.remove('hidden');
                 } else {
                     placeholder.innerText = "Step 3: Analyzing...";
+                    zoomControls.classList.add('hidden');
                 }
             }
         }
         applyBrandUI();
 
-        // MAGNIFIER LOGIC
-        previewContainer.addEventListener('mousemove', (e) => {
-            if (!pendingBase64 || pendingCoords.length >= 4) {
-                magnifier.style.display = 'none';
-                return;
-            }
+        // ZOOM & PAN ENGINE
+        function updateTransform() {
+            zoomWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
+        }
+
+        document.getElementById('btn-zoom-in').addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentScale = Math.min(currentScale + 0.5, 5);
+            updateTransform();
+        });
+
+        document.getElementById('btn-zoom-out').addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentScale = Math.max(currentScale - 0.5, 1);
+            if(currentScale === 1) { panX = 0; panY = 0; }
+            updateTransform();
+        });
+
+        previewContainer.addEventListener('mousedown', (e) => {
+            if (!pendingBase64) return;
+            isPanning = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            previewContainer.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+            previewContainer.style.cursor = 'grab';
+        });
+
+        // Click to Tap (Must account for zoom and pan)
+        previewContainer.addEventListener('click', async (e) => {
+            if (!pendingBase64 || pendingCoords.length >= 4 || isPanning) return;
             
-            const rect = preview.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const rect = previewContainer.getBoundingClientRect();
+            const imgRect = preview.getBoundingClientRect();
+            
+            const clickX_relative = (e.clientX - imgRect.left) / currentScale;
+            const clickY_relative = (e.clientY - imgRect.top) / currentScale;
 
-            if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
-                magnifier.style.display = 'none';
-                return;
-            }
+            const ratio = preview.naturalWidth / (imgRect.width / currentScale);
+            
+            const x = Math.round(clickX_relative * ratio);
+            const y = Math.round(clickY_relative * ratio);
 
-            magnifier.style.display = 'block';
-            magnifier.style.left = `${x - 50}px`;
-            magnifier.style.top = `${y - 120}px`;
+            if (x < 0 || x > preview.naturalWidth || y < 0 || y > preview.naturalHeight) return;
 
-            const ratioX = preview.naturalWidth / rect.width;
-            const ratioY = preview.naturalHeight / rect.height;
-
-            magImg.src = preview.src;
-            magImg.style.left = `-${x * 4}px`;
-            magImg.style.top = `-${y * 4}px`;
-            magImg.style.width = `${rect.width}px`;
-            magImg.style.height = `${rect.height}px`;
-        });
-
-        previewContainer.addEventListener('mouseleave', () => {
-            magnifier.style.display = 'none';
-        });
-
-        document.getElementById('camera-btn').addEventListener('click', () => {
-            if (pendingBase64) {
-                if(!confirm("Start new scan?")) return;
-                pendingBase64 = null;
-                pendingCoords = [];
-                preview.src = '';
-                preview.classList.add('hidden');
-                tapIndicator.style.display = 'none';
-                applyBrandUI();
-            }
-            document.getElementById('camera-input').click();
-        });
-
-        document.getElementById('camera-input').addEventListener('change', (e) => {
-            if (!e.target.files.length) return;
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                pendingBase64 = event.target.result;
-                preview.src = pendingBase64;
-                preview.classList.remove('hidden');
-                pendingCoords = [];
-                placeholder.innerText = `Tap ${padNames[0]}...`;
-            };
-            reader.readAsDataURL(file);
-        });
-
-        preview.addEventListener('click', async (e) => {
-            if (!pendingBase64 || pendingCoords.length >= 4) return;
-            const rect = preview.getBoundingClientRect();
-            const ratio = Math.min(rect.width / preview.naturalWidth, rect.height / preview.naturalHeight);
-            const renderWidth = preview.naturalWidth * ratio;
-            const renderHeight = preview.naturalHeight * ratio;
-            const offsetX = (rect.width - renderWidth) / 2;
-            const offsetY = (rect.height - renderHeight) / 2;
-            const clickX = e.clientX - rect.left - offsetX;
-            const clickY = e.clientY - rect.top - offsetY;
-            if (clickX < 0 || clickX > renderWidth || clickY < 0 || clickY > renderHeight) return;
-            const x = Math.round(clickX / ratio);
-            const y = Math.round(clickY / ratio);
             pendingCoords.push({x, y});
             
-            // Show indicator where they tapped
+            // Show indicator
             tapIndicator.style.display = 'block';
-            tapIndicator.style.left = `${clickX + offsetX - 12}px`;
-            tapIndicator.style.top = `${clickY + offsetY - 12}px`;
+            tapIndicator.style.left = `${e.clientX - rect.left - 12}px`;
+            tapIndicator.style.top = `${e.clientY - rect.top - 12}px`;
             
             if (pendingCoords.length < 4) {
-                placeholder.innerHTML = `Step 2: <span style="color: var(--accent);">Tap the ${padNames[pendingCoords.length]} pad</span>`;
+                applyBrandUI();
             } else {
                 tapIndicator.style.display = 'none';
                 placeholder.innerText = "Step 3: Analyzing...";
@@ -371,6 +367,37 @@
             });
             document.getElementById('results-card').classList.remove('hidden');
         }
+
+        document.getElementById('camera-btn').addEventListener('click', () => {
+            if (pendingBase64) {
+                if(!confirm("Start new scan?")) return;
+                pendingBase64 = null;
+                pendingCoords = [];
+                preview.src = '';
+                preview.classList.add('hidden');
+                tapIndicator.style.display = 'none';
+                currentScale = 1; panX = 0; panY = 0;
+                updateTransform();
+                applyBrandUI();
+            }
+            document.getElementById('camera-input').click();
+        });
+
+        document.getElementById('camera-input').addEventListener('change', (e) => {
+            if (!e.target.files.length) return;
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                pendingBase64 = event.target.result;
+                preview.src = pendingBase64;
+                preview.classList.remove('hidden');
+                pendingCoords = [];
+                currentScale = 1; panX = 0; panY = 0;
+                updateTransform();
+                applyBrandUI();
+            };
+            reader.readAsDataURL(file);
+        });
 
         document.getElementById('scan-manual-btn').addEventListener('click', async () => {
             const payload = { 
