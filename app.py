@@ -7,8 +7,10 @@ import numpy as np
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Allow mobile app to call this API from any origin
 
 db = SQLAlchemy()
 
@@ -180,6 +182,25 @@ def view_history():
     scan_tuples = [(s.id, s.timestamp, s.fcl, s.alk, s.ph, s.th, s.weather_trend) for s in scans]
     
     return render_template('history.html', scans=scan_tuples, labels=labels, fcl_data=fcl_data, ph_data=ph_data)
+
+@app.route('/api/history')
+def api_history():
+    """JSON endpoint for the mobile app to consume scan history."""
+    try:
+        scans = Scan.query.order_by(Scan.timestamp.desc()).limit(20).all()
+        result = [{
+            'id': s.id,
+            'timestamp': s.timestamp,
+            'fcl': s.fcl,
+            'alk': s.alk,
+            'ph': s.ph,
+            'th': s.th,
+            'weather_trend': s.weather_trend
+        } for s in scans]
+        return jsonify({'scans': result})
+    except Exception as e:
+        app.logger.error(f"API History fetch error: {e}")
+        return jsonify({'scans': [], 'error': str(e)}), 500
 
 @app.route('/scan', methods=['POST'])
 def scan_manual():
